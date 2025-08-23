@@ -1,0 +1,77 @@
+name: Frontend CI
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - app/frontend/**
+  workflow_dispatch:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    name: Run linting
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.14'
+
+      - name: Cache Node.js modules
+        uses: actions/cache@v3
+        with:
+          path: app/frontend/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('app/frontend/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        run: npm install --prefix app/frontend
+
+      - name: Run linting
+        run: npm run lint --prefix app/frontend
+        continue-on-error: false
+
+  test:
+    runs-on: ubuntu-latest
+    name: Run testing
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.14'
+
+      - name: Cache Node.js modules
+        uses: actions/cache@v3
+        with:
+          path: app/frontend/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('app/frontend/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        run: npm install --prefix app/frontend
+
+      - name: Run tests
+        run: npm test --prefix app/frontend
+        continue-on-error: false
+
+  build:
+    runs-on: ubuntu-latest
+    name: Build the application
+    needs: [lint, test]
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Build the app using Docker
+        run: |
+          docker build --build-arg=REACT_APP_MOVIE_API_URL=http://placeholder-url app/frontend
+        continue-on-error: false
