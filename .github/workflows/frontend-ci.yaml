@@ -1,4 +1,8 @@
-name: Frontend CI
+name: Frontend Continuous Integration
+
+defaults:
+  run:
+    working-directory: app/frontend
 
 on:
   pull_request:
@@ -24,16 +28,16 @@ jobs:
       - name: Cache Node.js modules
         uses: actions/cache@v3
         with:
-          path: app/frontend/node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('app/frontend/package-lock.json') }}
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
 
       - name: Install dependencies
-        run: npm install --prefix app/frontend
+        run: npm install
 
       - name: Run linting
-        run: npm run lint --prefix app/frontend
+        run: npm run lint
         continue-on-error: false
 
   test:
@@ -51,16 +55,16 @@ jobs:
       - name: Cache Node.js modules
         uses: actions/cache@v3
         with:
-          path: app/frontend/node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('app/frontend/package-lock.json') }}
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
 
       - name: Install dependencies
-        run: npm install --prefix app/frontend
+        run: npm install
 
       - name: Run tests
-        run: npm test --prefix app/frontend
+        run: npm test
         continue-on-error: false
 
   build:
@@ -71,7 +75,7 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v3
 
-      - name: Build the app using Docker
+      - name: Build the application using Docker
         run: |
-          docker build --build-arg=REACT_APP_MOVIE_API_URL=http://placeholder-url app/frontend
+          docker build --build-arg=REACT_APP_MOVIE_API_URL=http://placeholder-url .
         continue-on-error: false
