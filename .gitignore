@@ -1,10 +1,15 @@
-node_modules
-.pytest_cache
-.terraform
-.terraform.tfstate.lock.info
-*.tfstate.backup
-credentials
-.pytest_cache
-.vscode
-.idea
+# Node.js
+node_modules/
+
+# Python
+.pytest_cache/
+__pycache__/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+
+# IDE/Editor
+.vscode/
 .DS_Store
