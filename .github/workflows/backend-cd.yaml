@@ -1,4 +1,4 @@
-name: Backend Continuous Integration
+name: Backend Continuous Deployment
 
 defaults:
   run:
@@ -89,4 +89,17 @@ jobs:
         run: |
           docker build -t $REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-      
+
+      - name: Update kubeconfig for EKS
+        run: |
+          aws eks update-kubeconfig \
+            --region $AWS_REGION \
+            --name $EKS_CLUSTER_NAME
+
+      - name: Deploy with Kustomize 
+        # kubectl and kustomize are already installed on ubuntu-latest
+        run: |
+          cd k8s
+          kustomize edit set image backend=${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG
+          kustomize build | kubectl apply -f -
+          kubectl rollout status deployment/backend
