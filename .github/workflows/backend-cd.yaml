@@ -15,7 +15,7 @@ on:
 jobs:
   lint:
     runs-on: ubuntu-latest
-    name: Run linting
+    name: Lint
     steps:
       - name: Check out code
         uses: actions/checkout@v3
@@ -37,7 +37,7 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
-    name: Run testing
+    name: Test
     steps:
       - name: Check out code
         uses: actions/checkout@v3
@@ -57,9 +57,9 @@ jobs:
         run: pipenv run test
         continue-on-error: false
 
-  build:
+  deploy:
     runs-on: ubuntu-latest
-    name: Build the application
+    name: Deploy
     needs: [lint, test]
 
     env:
