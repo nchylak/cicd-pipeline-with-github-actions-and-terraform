@@ -1,0 +1,92 @@
+name: Backend Continuous Integration
+
+defaults:
+  run:
+    working-directory: app/backend
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - app/backend/**
+  workflow_dispatch:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    name: Run linting
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install pipenv
+        run: pip install pipenv
+
+      - name: Install all dependencies
+        run: pipenv install -d
+
+      - name: Run linting
+        run: pipenv run lint
+        continue-on-error: false
+
+  test:
+    runs-on: ubuntu-latest
+    name: Run testing
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install pipenv
+        run: pip install pipenv
+
+      - name: Install all dependencies
+        run: pipenv install -d
+
+      - name: Run testing
+        run: pipenv run test
+        continue-on-error: false
+
+  build:
+    runs-on: ubuntu-latest
+    name: Build the application
+    needs: [lint, test]
+
+    env:
+      AWS_REGION: us-east-1
+      ECR_REPOSITORY: backend
+      EKS_CLUSTER_NAME: cluster
+      IMAGE_TAG: ${{ github.sha }}
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push the Docker image to ECR
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          docker build -t $REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+      
