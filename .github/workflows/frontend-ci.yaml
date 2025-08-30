@@ -78,4 +78,3 @@ jobs:
       - name: Build the application using Docker
         run: |
           docker build --build-arg=REACT_APP_MOVIE_API_URL=http://placeholder-url .
-        continue-on-error: false

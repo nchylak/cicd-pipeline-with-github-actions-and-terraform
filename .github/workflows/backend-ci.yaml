@@ -67,4 +67,3 @@ jobs:
 
       - name: Build the application using Docker
         run: docker build .
-        continue-on-error: false
